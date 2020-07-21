@@ -319,17 +319,17 @@ class ObserverSuccess implements ObserverInterface
             $productName = $item->getName();
             $orderDescription .= $productName . ' ';
             $product = $objectManager->create('Magento\Catalog\Model\Product')->loadByAttribute('name', $productName);
-            if($this->_mienvioHelper->getMeasures() === 1){
-                $length = $product->getData('ts_dimensions_length');
-                $width  = $product->getData('ts_dimensions_width');
-                $height = $product->getData('ts_dimensions_height');
-                $weight = $product->getData('weight');
 
+            $dimensions = $this->getDimensionItems($product);
+
+            if(is_array($dimensions)){
+                $length = $dimensions['length'];
+                $width  = $dimensions['width'];
+                $height = $dimensions['height'];
             }else{
-                $length = $this->convertInchesToCms($product->getData('ts_dimensions_length'));
-                $width  = $this->convertInchesToCms($product->getData('ts_dimensions_width'));
-                $height = $this->convertInchesToCms($product->getData('ts_dimensions_height'));
-                $weight = $this->convertWeight($product->getData('weight'));
+                $length = 2;
+                $width  = 2;
+                $height = 2;
             }
 
             $orderLength += $length;
@@ -360,6 +360,54 @@ class ObserverSuccess implements ObserverInterface
             'description' => $orderDescription,
             'items'       => $itemsArr
         ];
+    }
+
+    private function getDimensionItems($product){
+        $length = 0;
+        $width = 0;
+        $height = 0;
+        $weight = 0;
+        if($product->getData('ts_dimensions_length') != 0 && $product->getData('ts_dimensions_length') != null) {
+            if ($this->_mienvioHelper->getMeasures() === 1) {
+                $length = $product->getData('ts_dimensions_length');
+                $width = $product->getData('ts_dimensions_width');
+                $height = $product->getData('ts_dimensions_height');
+                $weight = $product->getData('weight');
+
+
+            } else {
+                $length = $this->convertInchesToCms($product->getData('ts_dimensions_length'));
+                $width = $this->convertInchesToCms($product->getData('ts_dimensions_width'));
+                $height = $this->convertInchesToCms($product->getData('ts_dimensions_height'));
+                $weight = $this->convertWeight($product->getData('weight'));
+            }
+        }else if($product->getData('length') != 0 && $product->getData('length') != null){
+            if ($this->_mienvioHelper->getMeasures() === 1) {
+                $length = $product->getData('length');
+                $width = $product->getData('width');
+                $height = $product->getData('height');
+                $weight = $product->getData('weight');
+
+
+            } else {
+                $length = $this->convertInchesToCms($product->getData('length'));
+                $width = $this->convertInchesToCms($product->getData('width'));
+                $height = $this->convertInchesToCms($product->getData('height'));
+                $weight = $this->convertWeight($product->getData('weight'));
+            }
+        }else{
+            $length = 2;
+            $width = 2;
+            $height = 2;
+            $weight = 2;
+            $this->_logger->debug('SHIPMENT WITH ITEM MEASURES IN 0, only for testing porpuses', ['ITEMSSSSS' => serialize($product->getData())]);
+        }
+        return array(
+            'length' => $length,
+            'width' => $width,
+            'height' => $height,
+            'weight' => $weight
+        );
     }
 
     /**

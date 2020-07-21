@@ -612,10 +612,12 @@ class Mienviorates extends AbstractCarrier implements CarrierInterface
                 $length = $dimensions['length'];
                 $width  = $dimensions['width'];
                 $height = $dimensions['height'];
+                $weight = $dimensions['weight'];
             }else{
                 $length = 2;
                 $width  = 2;
                 $height = 2;
+                $weight = 1;
             }
 
 

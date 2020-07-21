@@ -209,6 +209,8 @@ class Mienviorates extends AbstractCarrier implements CarrierInterface
             $addressToId = $addressToResp->{'address'}->{'object_id'};
 
             $itemsMeasures = $this->getOrderDefaultMeasures($request->getAllItems());
+
+
             $packageWeight = $this->convertWeight($request->getPackageWeight());
 
             if (self::IS_QUOTE_ENDPOINT_ACTIVE) {
@@ -294,7 +296,7 @@ class Mienviorates extends AbstractCarrier implements CarrierInterface
                 }
 
 
-                
+
             }
 
             return $rates;
@@ -603,17 +605,35 @@ class Mienviorates extends AbstractCarrier implements CarrierInterface
             $productName = $item->getName();
             $orderDescription .= $productName . ' ';
             $product = $objectManager->create('Magento\Catalog\Model\Product')->loadByAttribute('name', $productName);
-            if($this->_mienvioHelper->getMeasures() === 1){
-                $length = $product->getData('ts_dimensions_length');
-                $width  = $product->getData('ts_dimensions_width');
-                $height = $product->getData('ts_dimensions_height');
-                $weight = $product->getData('weight');
+            $this->_logger->debug('Creating quote (mienviorates)', ['ITEMSSSSS' => serialize($product->getData())]);
+            if($product->getData('ts_dimensions_length') != 0 && $product->getData('ts_dimensions_length') != null) {
+                if ($this->_mienvioHelper->getMeasures() === 1) {
+                    $length = $product->getData('ts_dimensions_length');
+                    $width = $product->getData('ts_dimensions_width');
+                    $height = $product->getData('ts_dimensions_height');
+                    $weight = $product->getData('weight');
 
+
+                } else {
+                    $length = $this->convertInchesToCms($product->getData('ts_dimensions_length'));
+                    $width = $this->convertInchesToCms($product->getData('ts_dimensions_width'));
+                    $height = $this->convertInchesToCms($product->getData('ts_dimensions_height'));
+                    $weight = $this->convertWeight($product->getData('weight'));
+                }
             }else{
-                $length = $this->convertInchesToCms($product->getData('ts_dimensions_length'));
-                $width  = $this->convertInchesToCms($product->getData('ts_dimensions_width'));
-                $height = $this->convertInchesToCms($product->getData('ts_dimensions_height'));
-                $weight = $this->convertWeight($product->getData('weight'));
+                if ($this->_mienvioHelper->getMeasures() === 1) {
+                    $length = $product->getData('length');
+                    $width = $product->getData('width');
+                    $height = $product->getData('height');
+                    $weight = $product->getData('weight');
+
+
+                } else {
+                    $length = $this->convertInchesToCms($product->getData('length'));
+                    $width = $this->convertInchesToCms($product->getData('width'));
+                    $height = $this->convertInchesToCms($product->getData('height'));
+                    $weight = $this->convertWeight($product->getData('weight'));
+                }
             }
 
 
